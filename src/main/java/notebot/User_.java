@@ -1,11 +1,11 @@
 package notebot;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.SQLInsert;
+import jakarta.validation.constraints.Pattern;
+
+import java.util.List;
+
 
 @Data
 @Entity
@@ -15,7 +15,9 @@ public class User_ {
     private Long id;
 
     private String chatId;
-
+    @Pattern(regexp = "^[a-zA-Z]+$", message = "Имя должно иметь только одно слово")
     private String name;
+    @OneToMany
+    private List<Note> noteList;
 
 }
