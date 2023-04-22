@@ -9,5 +9,6 @@ import org.springframework.data.repository.CrudRepository;
 
 
 public interface NoteRepository extends CrudRepository<Note,Long> {
-    Page<Note> findAll(Pageable pageable);
+    Page<Note> findAllByChatId(Pageable pageable,Long chatId);
+
 }

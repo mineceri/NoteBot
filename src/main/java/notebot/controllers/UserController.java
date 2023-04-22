@@ -27,6 +27,9 @@ public class UserController {
     public ResponseEntity<Object> postUser(@RequestBody  @Validated User_ user_, Errors errors){
         Optional<User_> users;
         String s = "";
+        if(registerService.userIdService(user_)){
+            return new ResponseEntity<>("Такой Id чата уже существует",HttpStatus.GONE);
+        }
         if (errors.hasErrors()) {
             users = Optional.empty();
            s = errors.getAllErrors().get(0).getDefaultMessage();
@@ -37,8 +40,8 @@ public class UserController {
         return users.map(value -> new ResponseEntity<Object>(value, HttpStatus.CREATED)).orElseGet(() -> new ResponseEntity<>(finalS, HttpStatus.GONE));
 
     }
-    @GetMapping("/user/{chatId}")
-    public ResponseEntity<User_> findById(@PathVariable String chatId){
+    @GetMapping("/{chatId}")
+    public ResponseEntity<User_> findById(@PathVariable Long chatId){
         List<User_> users=userRepo.findByChatId(chatId);
         if(users.isEmpty()){
            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
