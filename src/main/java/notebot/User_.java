@@ -14,8 +14,8 @@ public class User_ {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private String chatId;
-    @Pattern(regexp = "^[a-zA-Z]+$", message = "Имя должно иметь только одно слово")
+    private Long chatId;
+    @Pattern(regexp = "^[a-zA-Zа-яА-Я]+$", message = "Имя должно иметь только одно слово")
     private String name;
     @OneToMany
     private List<Note> noteList;
