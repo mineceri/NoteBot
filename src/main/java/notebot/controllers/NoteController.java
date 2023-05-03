@@ -2,7 +2,9 @@ package notebot.controllers;
 
 import jakarta.websocket.server.PathParam;
 import notebot.Note;
+import notebot.User_;
 import notebot.data.NoteRepository;
+import notebot.data.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,30 +14,40 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @RestController
 @RequestMapping(value = "/note",produces = "application/json")
 public class NoteController {
     private final NoteRepository noteRepo;
+    private final UserRepository userRepo;
 
     private final int maxSymbols;
-    public NoteController(NoteRepository noteRepo,@Value("${notebot.maxsymbols}") int maxSymbols) {
+    public NoteController(NoteRepository noteRepo, UserRepository userRepo, @Value("${notebot.maxsymbols}") int maxSymbols) {
         this.noteRepo = noteRepo;
+        this.userRepo = userRepo;
         this.maxSymbols = maxSymbols;
     }
     @PostMapping(consumes = "application/json")
     public Note processNote(@RequestBody Note note){
-        if(note.getText().length()<=maxSymbols){
+            if (note.getText().length() <= maxSymbols) {
+            Long chatId = Optional.ofNullable(note.getUser())
+                    .map(User_::getChatId)
+                    .orElse(null);
+            note.setUser(userRepo.findByChatId(chatId).get(0));
             return noteRepo.save(note);
-        }else {
+        } else {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Превышено максимальное допустимое количество символов");
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Note> deleteNote(@PathParam("chatId")String chatId, @PathVariable long id){
+    public ResponseEntity<Note> deleteNote(@PathParam("chatId")Long chatId, @PathVariable long id){
         Note note=noteRepo.findById(id).orElse(null);
         if(note==null){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -55,19 +67,18 @@ public class NoteController {
             @RequestParam("offset") int offset) {
 
         Pageable pageable = PageRequest.of(offset, sizePage);
-        Page<Note> notePage = noteRepo.findAllByChatId(pageable,chatId);
+        Page<Note> notePage = noteRepo.findAllByUserChatId(pageable,chatId);
         return ResponseEntity.ok()
                 .body(notePage.getContent());
     }
     @GetMapping("/count")
     public ResponseEntity<Integer>getCountNotesForChatId(@RequestParam("chatId") Long chatId){
-        Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
-        Page<Note> notePage = noteRepo.findAllByChatId(pageable,chatId);
+        Optional<Integer> notePage = noteRepo.countNotesByUser_ChatId(chatId);
         return ResponseEntity.ok()
-                .body(notePage.getContent().size());
+                .body(notePage.orElse(null));
     }
     @GetMapping("/{id}")
-    public ResponseEntity<Note> getNote(@PathParam("chatId")String chatId, @PathVariable long id){
+    public ResponseEntity<Note> getNote(@PathParam("chatId")Long chatId, @PathVariable long id) throws SQLException {
         Note note=noteRepo.findById(id).orElse(null);
         if(note==null){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
