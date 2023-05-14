@@ -18,8 +18,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Supplier;
+
 
 @RestController
 @RequestMapping(value = "/note",produces = "application/json")
@@ -90,5 +89,18 @@ public class NoteController {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
     }
+    @PutMapping(consumes = "application/json")
+    public  ResponseEntity<Note> updateNote(Note note){
+        Note note1=noteRepo.findById(note.getId()).orElse(null);
+        if(note1==null){
+           throw  new ResponseStatusException(HttpStatus.NOT_FOUND, "Заметки с таким id не существует");
+        }else {
+            note1=note;
+            noteRepo.save(note1);
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 
 }
