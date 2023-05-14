@@ -22,7 +22,7 @@ public class UserController {
         this.userRepo = userRepo;
         this.registerService = registerService;
     }
-    @PostMapping(consumes = "application/json",value = "/register")
+    @PostMapping(consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> postUser(@RequestBody  @Validated User_ user_, Errors errors){
         Optional<User_> users;
@@ -40,8 +40,8 @@ public class UserController {
         return users.map(value -> new ResponseEntity<Object>(value, HttpStatus.CREATED)).orElseGet(() -> new ResponseEntity<>(finalS, HttpStatus.GONE));
 
     }
-    @GetMapping("/whoami/{chatId}")
-    public ResponseEntity<User_> findById(@PathVariable String chatId){
+    @GetMapping("/{chatId}")
+    public ResponseEntity<User_> findById(@PathVariable Long chatId){
         List<User_> users=userRepo.findByChatId(chatId);
         if(users.isEmpty()){
            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
