@@ -90,17 +90,20 @@ public class NoteController {
         }
     }
     @PutMapping(consumes = "application/json")
-    public  ResponseEntity<Note> updateNote(Note note){
+    public  ResponseEntity<Note> updateNote(@RequestBody Note note){
         Note note1=noteRepo.findById(note.getId()).orElse(null);
         if(note1==null){
            throw  new ResponseStatusException(HttpStatus.NOT_FOUND, "Заметки с таким id не существует");
-        }else {
-            note1=note;
+        }else if(Objects.equals(note.getUser().getChatId(), note1.getUser().getChatId())){
+            if(note.getText()!=null){
+                note1.setText(note.getText());
+            }
+            if (note.getLabel()!=null){
+                note1.setLabel(note.getLabel());
+            }
             noteRepo.save(note1);
+            return  new ResponseEntity<>(note1,HttpStatus.OK);
         }
-
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
-
-
 }
